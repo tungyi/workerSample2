@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration>
+  <BrokerServer>
+    <Receive>
+      <Type>MQTT</Type>
+      <IP>127.0.0.1</IP>
+      <Port>1883</Port>
+      <Account>admin</Account>
+      <Password>ATyD6aUu1l9Yz+gNYJtefA==</Password>
+      <Vhost>/</Vhost>
+      <Tenant>+</Tenant>
+      <SSLEnable>false</SSLEnable>
+    </Receive>
+    <Send>
+      <Type>MQTT</Type>
+      <IP>127.0.0.1</IP>
+      <Port>1883</Port>
+      <Account>admin</Account>
+      <Password>ATyD6aUu1l9Yz+gNYJtefA==</Password>
+      <Vhost>/</Vhost>
+      <Tenant>WISE-PaaS</Tenant>
+      <SSLEnable>false</SSLEnable>
+    </Send>
+  </BrokerServer>
+  <DBServer>
+    <SQL>
+      <PostgreSQL>
+        <Properties>
+          <property name="eclipselink.cache.size.default" value="0"/>
+          <property name="eclipselink.logging.level" value="OFF"/>
+          <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/wisepaas?currentSchema=public"/>
+          <property name="javax.persistence.jdbc.user" value="postgres"/>
+          <property name="eclipselink.cache.shared.default" value="false"/>
+          <property name="javax.persistence.jdbc.password" value="tjR9ASnT1DD/6cvC9vB5KA=="/>
+          <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+          <property name="eclipselink.cache.type.default" value="NONE"/>
+          <property name="eclipselink.jdbc.cache-statements" value="true"/>
+        </Properties>
+      </PostgreSQL>
+    </SQL>
+    <NoSQL>
+      <MongoDB>
+        <IP>127.0.0.1</IP>
+        <Port>27017</Port>
+        <username>wisepaas</username>
+        <Password>WYOayctZri8m3Af8f7N7hQ==</Password>
+        <DBName>WISE-PaaS</DBName>
+      </MongoDB>
+    </NoSQL>
+  </DBServer>
+</Configuration>

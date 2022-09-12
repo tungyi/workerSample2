@@ -1,0 +1,157 @@
+class ProjectVersion {
+    private String version
+
+    ProjectVersion(String version) {
+        this.version = version
+    }
+
+    @Override
+    String toString() {
+        return this.version
+    }
+}
+
+class ProjectRules {
+    // Spaces in PCF
+    private final String PRODUCTION = 'production'
+    private final String DEVELOP = 'develop'
+    private final String STAGE = 'stage'
+
+    private final List SPACE = [
+            DEVELOP,
+            STAGE,
+            PRODUCTION
+    ]
+
+    // Suffix for spaces
+    private final String SFX_PRODUCTION = ''
+    private final String SFX_STAGE = '-stage'
+    private final String SFX_DEVELOP = '-develop'
+
+    private final Map SUFFIX = [
+            (DEVELOP)   : SFX_DEVELOP,
+            (STAGE)     : SFX_STAGE,
+            (PRODUCTION): SFX_PRODUCTION
+    ]
+
+    private final Project project
+    private final String TO_SPACE = System
+            .getProperty('pcf_space', DEVELOP)
+            .toLowerCase()
+
+    ProjectRules(Project project) {
+        this.project = project
+        if (!SPACE.contains(TO_SPACE)) {
+            throw new GradleException("unsupported PCF space: $TO_SPACE")
+        }
+    }
+
+    /**
+     * A function to extract version information from PCF's manifest.yml file.
+     * By rule, each project has to add a line of version information inside
+     * that file. An example is as follows:
+     *
+     *     applications:
+     *     - name: ei-dashboard
+     *       version: 0.1.0
+     *       path: build/libs/ei-dashboard.war
+     *       services:
+     *         - PSQL-Dashboard
+     *
+     * @return The version information with string format.
+     */
+
+    /**
+     * Calculate reasonable application library path to be pushed
+     * to PCF by rules. It currently only support either war or jar type
+     * for java system.
+     *
+     * @return The application path to be pushed to PCF.
+     */
+    String getReasonableAppLibPath(absolutely = true) {
+        // For applications to be pushed, we assume that they are
+        // generated in build/libs directory
+        String prefix = String.join(File.separator,
+                [project.buildDir.absolutePath, 'libs', project.name]
+        )
+
+        List<File> candidates = [
+                new File(prefix + '.war'),
+                new File(prefix + '.jar')
+        ]
+
+        File pcfAppPath = null
+        for (int i = 0; i < candidates.size(); i++) {
+            if (candidates[i].exists()) {
+                pcfAppPath = candidates[i]
+                break
+            }
+        }
+
+        if (null == pcfAppPath) {
+            String candidatesInOrder = ''
+            for (int i = 0; i < candidates.size(); i++) {
+                candidatesInOrder += '* ' + candidates[i].absolutePath + '\n'
+            }
+            throw new GradleException(
+                    "Cannot find resonable application to push in order:\n" + \
+                     candidatesInOrder
+            )
+        }
+
+        return absolutely ? pcfAppPath.absolutePath : pcfAppPath.name
+    }
+
+    /**
+     * Make application name on PCF.
+     * By rule, the name should look like 'projectName-1.3.0'
+     *
+     * @return The PCF application name.
+     */
+    String getPCFappName() {
+        return project.rootProject.name;
+    }
+
+    /**
+     * Make application hostname to be used in PCF.
+     * By rule, the hostname should look like 'projectName-1-3-0-app'
+     *
+     * @return The PCF application hostname.
+     */
+    String getPCFappHostname() {
+        String hostname = getPCFappName().replace('.', '-')
+        return hostname + SUFFIX[TO_SPACE]
+    }
+}
+
+
+ext {
+    rules = new ProjectRules(project)
+}
+
+// Determine and assign version to this project.
+version = ''
+
+// Custom task to generate build/libs/manifest.yml for QA.
+task makeManifest {
+    group 'advantech'
+    description 'Make an official manifest.yml for PCF'
+
+    doLast {
+        copy {
+            from "scripts/build/manifest.template.yml"
+            into "build/libs/"
+
+            rename { filename ->
+                filename.replace '.template', ''
+            }
+
+            // Substitute property tokens infile
+            expand(
+                    pcfAppName: rules.getPCFappName(),
+                    pcfAppLibPath: rules.getReasonableAppLibPath(false)
+            )
+        }
+    }
+}
+

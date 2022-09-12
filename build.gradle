@@ -1,0 +1,42 @@
+apply plugin: 'java'
+apply plugin: 'application'
+apply from: 'scripts/build/projectRules.gradle'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+task runnableJar(type: Jar) {
+    group 'advantech'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude('META-INF/maven/**')
+    manifest {
+        attributes 'Main-Class': 'SampleCode'
+    }
+    baseName = project.name
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }{
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+        exclude "LICENSE"
+    }
+    with jar
+}
+
+dependencies {
+    compile group: 'javax.ws.rs', name: 'javax.ws.rs-api', version: '2.1'
+    compile 'commons-codec:commons-codec:1.10'
+    compile 'dom4j:dom4j:1.6.1'
+    compile 'org.json:json:20160810'
+    compile 'com.google.code.gson:gson:2.8.0'
+    compile 'com.rabbitmq:amqp-client:4.1.0'
+    compile 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.1'
+    compile 'org.bouncycastle:bcprov-jdk15:1.46'
+
+    compile 'org.postgresql:postgresql:9.4.1212'
+    compile 'org.eclipse.persistence:org.eclipse.persistence.jpa:2.6.4'
+
+    compile 'org.mongodb:mongo-java-driver:3.4.2'
+}

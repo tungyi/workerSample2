@@ -1,0 +1,13 @@
+applications:
+- name: ${pcfAppName}
+  path: ${pcfAppLibPath}
+  buildpack: java_buildpack_offline
+  instances: 1
+  memory: 256M
+  disk_quota: 512M
+  no-route: true
+  health-check-type: process
+  services:
+  - mongodb
+  - rabbitmq
+  - postgresql
